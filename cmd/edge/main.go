@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"slices"
@@ -28,15 +29,14 @@ func transfere() {
 			continue
 		}
 		if err := envia(lote); err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			slices.Reverse(lote)
 			if err := model.RedisEdge.LPush(model.Ctx, "applog", lote...).Err(); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 			}
 			time.Sleep(time.Second * 5)
 			continue
 		}
-		fmt.Println(len(lote))
 	}
 }
 
