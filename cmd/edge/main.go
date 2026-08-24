@@ -44,7 +44,7 @@ func extrai(n int) ([]any, error) {
 	lote := make([]any, 0, n)
 	result, err := model.RedisEdge.BLPop(model.Ctx, 0, "applog").Result()
 	if err != nil {
-		return nil, fmt.Errorf("extrai: %w", err)
+		return nil, fmt.Errorf("extrai 1: %w", err)
 	}
 	lote = append(lote, result[1])
 	messages, err := model.RedisEdge.LPopCount(model.Ctx, "applog", n-1).Result()
@@ -52,7 +52,7 @@ func extrai(n int) ([]any, error) {
 		return lote, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("extrai: %w", err)
+		return nil, fmt.Errorf("extrai 2: %w", err)
 	}
 	for _, message := range messages {
 		lote = append(lote, message)
