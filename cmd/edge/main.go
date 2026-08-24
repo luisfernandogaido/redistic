@@ -22,7 +22,7 @@ func main() {
 
 func transfere() {
 	for {
-		lote, err := extrai(10000)
+		lote, err := extraiOldVersions(10000)
 		if err != nil {
 			fmt.Println(err)
 			continue
@@ -56,6 +56,26 @@ func extrai(n int) ([]any, error) {
 	}
 	for _, message := range messages {
 		lote = append(lote, message)
+	}
+	return lote, nil
+}
+
+func extraiOldVersions(n int) ([]any, error) {
+	lote := make([]any, 0, n)
+	result, err := model.RedisEdge.BLPop(model.Ctx, 0, "applog").Result()
+	if err != nil {
+		return nil, fmt.Errorf("extrai 1: %w", err)
+	}
+	lote = append(lote, result[1])
+	for i := 0; i < n-1; i++ {
+		msg, err := model.RedisEdge.LPop(model.Ctx, "applog").Result()
+		if errors.Is(err, redis.Nil) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("extrai 2: %w", err)
+		}
+		lote = append(lote, msg)
 	}
 	return lote, nil
 }
