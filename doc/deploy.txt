@@ -1,0 +1,21 @@
+edge
+
+cd /var/www/html/redistic; git pull; cd cmd/edge; go build -o ./redistic-edge; systemctl restart redistic-edge;
+
+cd /var/www/html/redistic; git pull; cd cmd/edge; go build -o ./redistic-edge
+
+systemctl stop cnc; cd /var/www/html/cnc; git pull; cd cmd; go build -o ./cnc; ./cnc
+
+cd /var/www/html/cnc2; git pull; cd cmd; go build -o ./cnc2; systemctl restart cnc2
+systemctl stop cnc2; cd /var/www/html/cnc2; git pull; cd cmd; go build -o ./cnc2; ./cnc2
+
+#agent (azure)
+systemctl stop cnc-agent; cd /var/www/html/cnc; git pull; cd agent; go build -o ./cnc-agent; systemctl restart cnc-agent
+systemctl stop cnc-agent; cd /var/www/html/cnc; git pull; cd agent; go build -o ./cnc-agent; ./cnc-agent
+
+#deletando arquivos pasta "data" quando há muitos arquivos (Argument list too long):
+find /var/www/html/cnc/agent/data -mindepth 1 -delete
+
+#agent aws (user ubuntu)
+systemctl stop cnc-agent; cd ~/cnc; git pull; cd agent; go build -o ./cnc-agent; systemctl restart cnc-agent
+systemctl stop cnc-agent; cd ~/cnc; git pull; cd agent; go build -o ./cnc-agent; ./cnc-agent
