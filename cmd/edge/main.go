@@ -14,6 +14,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	tamanhoLote = 1000
+)
+
 func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -23,7 +27,7 @@ func main() {
 
 func transfere() {
 	for {
-		lote, err := extraiOldVersions(10000)
+		lote, err := extraiOldVersions(tamanhoLote)
 		if err != nil {
 			fmt.Println(err)
 			continue

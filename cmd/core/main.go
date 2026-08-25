@@ -15,6 +15,10 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	tamLote = 1000
+)
+
 type Meta struct {
 	Index    string `json:"index"`
 	Complete bool   `json:"complete"`
@@ -38,7 +42,8 @@ type IndexData struct {
 }
 
 var (
-	chIndexData = make(chan IndexData, 1000)
+	chElastic = make(chan IndexData, tamLote)
+	chRedis   = make(chan IndexData, tamLote)
 )
 
 func init() {
@@ -50,13 +55,13 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go roteia()
 	go despachaElastic()
+	go despachaRedis()
 	<-sigs
-
 }
 
 func roteia() {
 	for {
-		lote, err := extrai(1000)
+		lote, err := extrai(tamLote)
 		if err != nil {
 			log.Println(err)
 		}
@@ -68,40 +73,63 @@ func roteia() {
 				continue
 			}
 			if mmd.Meta.Complete {
-				chIndexData <- IndexData{
+				chElastic <- IndexData{
 					Index: mmd.Meta.Index,
 					Data:  mmd.Metadata,
 				}
 			} else {
-				fmt.Println("redis")
-				fmt.Println(mmd)
+				chRedis <- IndexData{
+					Index: mmd.Meta.Index,
+					Data:  mmd.Metadata,
+				}
 			}
 		}
 	}
 }
 
 func despachaElastic() {
-	indices := make([]string, 0)
-	documentos := make([]any, 0)
-	const lote = 1000
+	tempoMaximoEspera := 5 * time.Second
+	indices := make([]string, 0, tamLote)
+	documentos := make([]any, 0, tamLote)
+	ticker := time.NewTicker(tempoMaximoEspera)
+	defer ticker.Stop()
+
+	flush := func() {
+		if len(indices) == 0 {
+			return
+		}
+		if err := es.BulkIndexes(indices, documentos); err != nil {
+			log.Printf("erro ao enviar lote: %v\n", err)
+			time.Sleep(tempoMaximoEspera) // backoff simples
+		}
+		fmt.Println("despachaElastic flush", len(indices))
+		indices = indices[:0]
+		documentos = documentos[:0]
+	}
+
 	for {
 		select {
-		case indexData := <-chIndexData:
+		case indexData := <-chElastic:
 			indices = append(indices, indexData.Index)
 			documentos = append(documentos, indexData.Data)
-			fmt.Println(indexData.Index, len(indices))
-			if len(indices) == lote {
-				if err := es.BulkIndexes(indices, documentos); err != nil {
-					log.Println(err)
-					time.Sleep(time.Second * 5)
-				}
-				indices = indices[:0]
-				documentos = documentos[:0]
+			if len(indices) == tamLote {
+				flush()
 			}
-		default:
-			fmt.Println("esperando")
-			time.Sleep(1 * time.Second)
+		case <-ticker.C:
+			flush()
+		}
+	}
+}
 
+func despachaRedis() {
+	for indexData := range chRedis {
+		b, err := json.Marshal(indexData.Data)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if err := model.RedisCore.RPush(model.Ctx, indexData.Index, string(b)).Err(); err != nil {
+			log.Println(err)
 		}
 	}
 }
