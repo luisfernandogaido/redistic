@@ -5,3 +5,5 @@ systemctl stop redistic-edge; cd /var/www/html/redistic; git pull; cd cmd/edge; 
 
 core
 
+cd /var/www/html/redistic; git pull; cd cmd/core; go build -o ./redistic-core; systemctl restart redistic-core;
+systemctl stop redistic-core; cd /var/www/html/redistic; git pull; cd cmd/core; go build -o ./redistic-core; ./redistic-core

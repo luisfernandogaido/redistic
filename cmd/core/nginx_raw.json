@@ -1,0 +1,14 @@
+{
+  "time": "2026-08-23T12:41:05-03:00",
+  "remote_addr": "206.189.98.192",
+  "hostname": "lemp",
+  "host": "consorcio.profinanc.com.br",
+  "request": "GET /app/entrar/index.php HTTP/1.1",
+  "status": 200,
+  "body_bytes_sent": 4509,
+  "http_referer": "",
+  "http_user_agent": "DigitalOcean Uptime Probe 0.28.0 (https://digitalocean.com)",
+  "x_session_id": "qvpkchtlojam7v02n1bqiq01g4",
+  "x_user_id": "",
+  "x_user_id2": ""
+}
