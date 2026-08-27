@@ -241,9 +241,9 @@ func preprocessaNginx() {
 				Proxy:             ip.Proxy,
 				Hosting:           ip.Hosting,
 			}
-			//if i%1000 == 0 {
-			fmt.Println(i)
-			//}
+			if i%1000 == 0 {
+				fmt.Println(i)
+			}
 			chElastic <- IndexData{
 				Index: "nginx2",
 				Data:  n,
