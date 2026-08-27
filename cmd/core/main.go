@@ -245,7 +245,7 @@ func preprocessaNginx() {
 				fmt.Println(i)
 			}
 			chElastic <- IndexData{
-				Index: "nginx2",
+				Index: "nginx",
 				Data:  n,
 			}
 		}
