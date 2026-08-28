@@ -214,6 +214,7 @@ func preprocessaNginx() {
 			ip, err = gd.FetchIp(nr.RemoteAddr)
 			if err != nil {
 				log.Println(err)
+				time.Sleep(time.Second * 10)
 			}
 			n := Nginx{
 				Time:              nr.Time,
