@@ -84,7 +84,7 @@ func FetchIp(ip string) (Ip, error) {
 		return info, fmt.Errorf("fetchip: %w", err)
 	}
 	mips[ip] = info
-	NextFech = time.Now().Add(time.Second)
+	NextFech = time.Now().Add(time.Second * 2)
 	return info, nil
 }
 
