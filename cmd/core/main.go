@@ -191,7 +191,7 @@ func preprocessaNginx() {
 	i := 0
 	for {
 		var ip gd.Ip
-		lote, err := extraiNginxRaw(1)
+		lote, err := extraiNginxRaw(10)
 		if err != nil {
 			log.Println(err)
 			time.Sleep(time.Second * 5)
