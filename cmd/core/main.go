@@ -105,7 +105,7 @@ func despachaElastic() {
 			time.Sleep(tempoMaximoEspera) // backoff simples
 		}
 		if errs != nil {
-			fmt.Println("despachaElastic TEVE ERRO!")
+			log.Println("despachaElastic TEVE ERRO!")
 		}
 		indices = indices[:0]
 		documentos = documentos[:0]
