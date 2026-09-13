@@ -167,7 +167,9 @@ func despachaMongo() {
 		if len(documentos) == 0 {
 			return
 		}
-		fmt.Println("despachaMongo", len(documentos))
+		if err := model.DLQInsert(documentos); err != nil {
+			log.Println("despachaMongo", err)
+		}
 		documentos = documentos[:0]
 	}
 

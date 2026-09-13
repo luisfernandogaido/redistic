@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -32,4 +33,11 @@ func NewDL(index string, payload any, bulkError BulkError) DL {
 		Payload:   payload,
 		BulkError: bulkError,
 	}
+}
+
+func DLQInsert(dls []DL) error {
+	if _, err := db.Collection("dlq").InsertMany(nil, dls); err != nil {
+		return fmt.Errorf("dlqinsert: %w", err)
+	}
+	return nil
 }
