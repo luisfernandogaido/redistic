@@ -109,7 +109,7 @@ func despachaElastic() {
 		if errs != nil {
 			log.Println("despachaElastic TEVE ERRO!", len(errs), len(indices), len(documentos))
 			for i := range indices {
-				if errs[i].Reason != "" {
+				if errs[i].Reason == "" {
 					continue
 				}
 				bulkError := model.BulkError{
