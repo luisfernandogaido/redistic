@@ -158,6 +158,13 @@ func BulkIndexes(indexes []string, docs []any) error {
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 		return fmt.Errorf("es bulk indexes: status %v, %v", res.StatusCode, string(b))
 	}
+
+	b, err = io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
+	}
+	fmt.Println(string(b))
+
 	res.Body.Close()
 	return nil
 }
