@@ -201,11 +201,9 @@ func BulkIndexes(indexes []string, docs []any) ([]BulkError, error) {
 	if err := json.Unmarshal(b, &response); err != nil {
 		return nil, fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
 	}
-	fmt.Println(response)
 	if response.Errors {
 		bulkErrors := make([]BulkError, len(response.Items))
 		for i, item := range response.Items {
-			fmt.Println(i)
 			bulkErrors[i] = item.Index.Error
 		}
 		return bulkErrors, nil
