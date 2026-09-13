@@ -1,0 +1,3 @@
+GET {{elastic_host}}/_cat/indices
+Authorization: Basic elastic {{elastic_pass}}
+Content-Type: application/json;charset=utf-8

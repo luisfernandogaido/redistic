@@ -1,0 +1,5 @@
+POST {{elastic_host}}/_bulk HTTP/1.1
+Authorization: Basic elastic {{elastic_pass}}
+Content-Type: application/x-ndjson
+
+< x.ndjson

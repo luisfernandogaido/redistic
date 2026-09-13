@@ -127,6 +127,31 @@ func BulkIndex(index string, docs []any) error {
 	return nil
 }
 
+type BulkCause struct {
+	Type   string `json:"type"`
+	Reason string `json:"reason"`
+}
+
+type BulkError struct {
+	Type     string    `json:"type"`
+	Reason   string    `json:"reason"`
+	CausedBy BulkCause `json:"caused_by"`
+}
+
+type BulkResponseItem struct {
+	Index struct {
+		Index  string    `json:"_index"`
+		Status int       `json:"status"`
+		Error  BulkError `json:"error"`
+	} `json:"index"`
+}
+
+type BulkResponse struct {
+	Errors bool               `json:"errors"`
+	Took   int                `json:"took"`
+	Items  []BulkResponseItem `json:"items"`
+}
+
 func BulkIndexes(indexes []string, docs []any) error {
 	if len(indexes) != len(docs) {
 		return fmt.Errorf("es bulk indexes: len(indexes) != len(docs)")
@@ -163,9 +188,12 @@ func BulkIndexes(indexes []string, docs []any) error {
 	if err != nil {
 		return fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
 	}
-	fmt.Println(string(b))
-
 	res.Body.Close()
+	var response BulkResponse
+	if err := json.Unmarshal(b, &response); err != nil {
+		return fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
+	}
+	fmt.Println("BulkIndexes", response)
 	return nil
 }
 
