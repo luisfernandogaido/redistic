@@ -25,7 +25,6 @@ func init() {
 	var (
 		err error
 	)
-	db = client.Database("redistic")
 	RedisCore = redis.NewClient(&redis.Options{
 		Addr:     "72.60.250.80:6380",
 		Password: "sbCK7YLM0qcRM6c",
@@ -42,6 +41,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	db = client.Database("redistic")
 	doc := struct {
 		Nome  string
 		Idade int
