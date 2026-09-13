@@ -48,6 +48,7 @@ type IndexData struct {
 var (
 	chElastic = make(chan IndexData, tamLote)
 	chRedis   = make(chan IndexData, tamLote)
+	chDL      = make(chan model.DL, tamLote)
 )
 
 func main() {
@@ -56,6 +57,7 @@ func main() {
 	go roteia()
 	go despachaElastic()
 	go despachaRedis()
+	go despachaMongo()
 	go preprocessaNginx()
 	<-sigs
 }
@@ -106,6 +108,17 @@ func despachaElastic() {
 		}
 		if errs != nil {
 			log.Println("despachaElastic TEVE ERRO!", len(errs), len(indices), len(documentos))
+			for i := range indices {
+				bulkError := model.BulkError{
+					Type:   errs[i].Type,
+					Reason: errs[i].Reason,
+					CausedBy: model.BulkCause{
+						Type:   errs[i].CausedBy.Type,
+						Reason: errs[i].CausedBy.Reason,
+					},
+				}
+				chDL <- model.NewDL(indices[0], documentos[i], bulkError)
+			}
 		}
 		indices = indices[:0]
 		documentos = documentos[:0]
@@ -140,6 +153,33 @@ func despachaRedis() {
 		}
 		if err := model.RedisCore.RPush(model.Ctx, indexData.Index, string(b)).Err(); err != nil {
 			log.Println(err)
+		}
+	}
+}
+
+func despachaMongo() {
+	tempoMaximoEspera := 5 * time.Second
+	documentos := make([]model.DL, 0, tamLote)
+	ticker := time.NewTicker(tempoMaximoEspera)
+	defer ticker.Stop()
+
+	flush := func() {
+		if len(documentos) == 0 {
+			return
+		}
+		fmt.Println("despachaMongo", len(documentos))
+		documentos = documentos[:0]
+	}
+
+	for {
+		select {
+		case dl := <-chDL:
+			documentos = append(documentos, dl)
+			if len(documentos) == tamLote {
+				flush()
+			}
+		case <-ticker.C:
+			flush()
 		}
 	}
 }

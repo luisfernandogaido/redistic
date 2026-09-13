@@ -151,11 +151,11 @@ type BulkResponse struct {
 				Total      int `json:"total"`
 				Successful int `json:"successful"`
 				Failed     int `json:"failed"`
-			} `json:"_shards,omitempty"`
+			} `json:"_shards"`
 			SeqNo       int       `json:"_seq_no,omitempty"`
 			PrimaryTerm int       `json:"_primary_term,omitempty"`
 			Status      int       `json:"status"`
-			Error       BulkError `json:"error,omitempty"`
+			Error       BulkError `json:"error"`
 		} `json:"index"`
 	} `json:"items"`
 }

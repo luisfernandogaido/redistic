@@ -42,11 +42,4 @@ func init() {
 		panic(err)
 	}
 	db = client.Database("redistic")
-	doc := struct {
-		Nome  string
-		Idade int
-	}{"Gaido", 44}
-	if _, err := db.Collection("dlq").InsertOne(nil, doc); err != nil {
-		panic(err)
-	}
 }
