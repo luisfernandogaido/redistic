@@ -12,3 +12,5 @@ systemctl stop redistic-core; cd /var/www/html/redistic; git pull; cd cmd/core; 
 systemctl stop redistic-core;
 
 journalctl -u redistic-core -f
+
+cd /var/www/html/redistic; git pull; cd cmd/core; go build -o ./redistic-core; systemctl restart redistic-core; journalctl -u redistic-core -f

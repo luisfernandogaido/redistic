@@ -99,9 +99,13 @@ func despachaElastic() {
 		if len(indices) == 0 {
 			return
 		}
-		if err := es.BulkIndexes(indices, documentos); err != nil {
+		errs, err := es.BulkIndexes(indices, documentos)
+		if err != nil {
 			log.Printf("erro ao enviar lote: %v\n", err)
 			time.Sleep(tempoMaximoEspera) // backoff simples
+		}
+		if errs != nil {
+			fmt.Println("despachaElastic TEVE ERRO!")
 		}
 		indices = indices[:0]
 		documentos = documentos[:0]

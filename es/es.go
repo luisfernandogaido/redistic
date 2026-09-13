@@ -138,23 +138,31 @@ type BulkError struct {
 	CausedBy BulkCause `json:"caused_by"`
 }
 
-type BulkResponseItem struct {
-	Index struct {
-		Index  string    `json:"_index"`
-		Status int       `json:"status"`
-		Error  BulkError `json:"error"`
-	} `json:"index"`
-}
-
 type BulkResponse struct {
-	Errors bool               `json:"errors"`
-	Took   int                `json:"took"`
-	Items  []BulkResponseItem `json:"items"`
+	Errors bool `json:"errors"`
+	Took   int  `json:"took"`
+	Items  []struct {
+		Index struct {
+			Index   string `json:"_index"`
+			Id      string `json:"_id"`
+			Version int    `json:"_version,omitempty"`
+			Result  string `json:"result,omitempty"`
+			Shards  struct {
+				Total      int `json:"total"`
+				Successful int `json:"successful"`
+				Failed     int `json:"failed"`
+			} `json:"_shards,omitempty"`
+			SeqNo       int       `json:"_seq_no,omitempty"`
+			PrimaryTerm int       `json:"_primary_term,omitempty"`
+			Status      int       `json:"status"`
+			Error       BulkError `json:"error,omitempty"`
+		} `json:"index"`
+	} `json:"items"`
 }
 
-func BulkIndexes(indexes []string, docs []any) error {
+func BulkIndexes(indexes []string, docs []any) ([]BulkError, error) {
 	if len(indexes) != len(docs) {
-		return fmt.Errorf("es bulk indexes: len(indexes) != len(docs)")
+		return nil, fmt.Errorf("es bulk indexes: len(indexes) != len(docs)")
 	}
 	u := fmt.Sprintf("%v/_bulk", UrlBase)
 	var buf bytes.Buffer
@@ -172,29 +180,35 @@ func BulkIndexes(indexes []string, docs []any) error {
 	}
 	req, err := http.NewRequest("POST", u, &buf)
 	if err != nil {
-		return fmt.Errorf("es bulk indexes: %w", err)
+		return nil, fmt.Errorf("es bulk indexes: %w", err)
 	}
 	putHeaders(req)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
+		return nil, fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
-		return fmt.Errorf("es bulk indexes: status %v, %v", res.StatusCode, string(b))
+		return nil, fmt.Errorf("es bulk indexes: status %v, %v", res.StatusCode, string(b))
 	}
 
 	b, err = io.ReadAll(res.Body)
 	if err != nil {
-		return fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
+		return nil, fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
 	}
 	res.Body.Close()
 	var response BulkResponse
 	if err := json.Unmarshal(b, &response); err != nil {
-		return fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
+		return nil, fmt.Errorf("es bulk indexes: %w, %v", err, string(b))
 	}
-	fmt.Println("BulkIndexes", response)
-	return nil
+	if response.Errors {
+		bulkErrors := make([]BulkError, len(response.Items))
+		for i, item := range response.Items {
+			bulkErrors[i] = item.Index.Error
+		}
+		return bulkErrors, nil
+	}
+	return nil, nil
 }
 
 func BulkUpdate(index string, ids []string, docs []any) error {
